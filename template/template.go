@@ -237,6 +237,12 @@ PostDown = {{ .Server.PostDown }}
 PublicKey = {{ .PublicKey }}
 PresharedKey = {{ .PresharedKey }}
 AllowedIPs = {{ StringsJoin .Address ", " }}
+{{ if ne (len .Endpoint) 0 -}}
+Endpoint = {{ .Endpoint }}
+{{- end }}
+{{ if and (ne .PersistentKeepalive 0) (not .IgnorePersistentKeepalive) -}}
+PersistentKeepalive = {{ .PersistentKeepalive }}
+{{- end}}
 {{- end }}
 {{ end }}`
 )
@@ -274,6 +280,8 @@ func DumpServerWg(clients []*model.Client, server *model.Server) ([]byte, error)
 	if err != nil {
 		return nil, err
 	}
+
+	//log.Info(configDataWg)
 
 	err = util.WriteFile(filepath.Join(os.Getenv("WG_CONF_DIR"), os.Getenv("WG_INTERFACE_NAME")), configDataWg)
 	if err != nil {

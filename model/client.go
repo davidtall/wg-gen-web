@@ -23,6 +23,8 @@ type Client struct {
 	UpdatedBy                 string    `json:"updatedBy"`
 	Created                   time.Time `json:"created"`
 	Updated                   time.Time `json:"updated"`
+	Endpoint                  string    `json:"endpoint"`
+	PersistentKeepalive       int       `json:"persistentKeepalive"`
 }
 
 // IsValid check if model is valid

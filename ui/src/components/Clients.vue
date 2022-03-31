@@ -256,6 +256,20 @@
                                         label="Client email"
                                         :rules="[ v => (/.+@.+\..+/.test(v) || v === '') || 'E-mail must be valid',]"
                                 />
+                              <v-text-field
+                                  v-model="client.privateKey"
+                                  label="privateKey"
+                              />
+                              <v-text-field
+                                  v-model="client.endpoint"
+                                  label="Endpoint"
+                              />
+                              <v-text-field
+                                  type="number"
+                                  v-model="client.persistentKeepalive"
+                                  label="Persistent keepalive"
+                                  hint="Leave at 0 if you dont want to specify persistent keepalive"
+                              />
                                 <v-select
                                         v-model="client.address"
                                         :items="server.address"
@@ -370,6 +384,20 @@
                                         :rules="[ v => (/.+@.+\..+/.test(v) || v === '') || 'E-mail must be valid',]"
                                         required
                                 />
+                              <v-text-field
+                                  v-model="client.publicKey"
+                                  label="PublicKey"
+                              />
+                              <v-text-field
+                                  v-model="client.endpoint"
+                                  label="Endpoint"
+                              />
+                              <v-text-field
+                                  type="number"
+                                  v-model="client.persistentKeepalive"
+                                  label="Persistent keepalive"
+                                  hint="Leave at 0 if you dont want to specify persistent keepalive"
+                              />
                                 <v-combobox
                                         v-model="client.address"
                                         chips
@@ -539,6 +567,7 @@
           }
         }
         this.dialogCreate = false;
+        client.persistentKeepalive = parseInt(client.persistentKeepalive, 10);
         this.creatClient(client)
       },
 
@@ -576,6 +605,7 @@
             return
           }
         }
+
         // check address
         if (client.address.length < 1) {
           this.errorClient('Please provide at least one valid CIDR address for client');
@@ -589,6 +619,8 @@
         }
         // all good, submit
         this.dialogUpdate = false;
+        client.persistentKeepalive = parseInt(client.persistentKeepalive, 10);
+
         this.updateClient(client)
       },
 

@@ -35,12 +35,20 @@ func CreateClient(client *model.Client) (*model.Client, error) {
 	u := uuid.NewV4()
 	client.Id = u.String()
 
-	key, err := wgtypes.GeneratePrivateKey()
-	if err != nil {
-		return nil, err
+	if client.PrivateKey != "" {
+		key, err := wgtypes.ParseKey(client.PrivateKey)
+		if err != nil {
+			return nil, err
+		}
+		client.PublicKey = key.PublicKey().String()
+	} else {
+		key, err := wgtypes.GeneratePrivateKey()
+		if err != nil {
+			return nil, err
+		}
+		client.PrivateKey = key.String()
+		client.PublicKey = key.PublicKey().String()
 	}
-	client.PrivateKey = key.String()
-	client.PublicKey = key.PublicKey().String()
 
 	presharedKey, err := wgtypes.GenerateKey()
 	if err != nil {
