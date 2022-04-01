@@ -6,6 +6,7 @@ import (
 	"github.com/vx3r/wg-gen-web/util"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"text/template"
 )
@@ -235,12 +236,14 @@ PostDown = {{ .Server.PostDown }}
 # {{.Name}} / {{.Email}} / Updated: {{.Updated}} / Created: {{.Created}}
 [Peer]
 PublicKey = {{ .PublicKey }}
+{{- if $.IsUsePreSharedKey }}
 PresharedKey = {{ .PresharedKey }}
+{{- end }}
 AllowedIPs = {{ StringsJoin .Address ", " }}
-{{ if ne (len .Endpoint) 0 -}}
+{{- if ne (len .Endpoint) 0 }}
 Endpoint = {{ .Endpoint }}
 {{- end }}
-{{ if and (ne .PersistentKeepalive 0) (not .IgnorePersistentKeepalive) -}}
+{{- if and (ne .PersistentKeepalive 0) (not .IgnorePersistentKeepalive)}}
 PersistentKeepalive = {{ .PersistentKeepalive }}
 {{- end}}
 {{- end }}
@@ -265,23 +268,27 @@ func DumpClientWg(client *model.Client, server *model.Server) ([]byte, error) {
 
 // DumpServerWg dump server wg config with go template, write it to file and return bytes
 func DumpServerWg(clients []*model.Client, server *model.Server) ([]byte, error) {
-	t, err := template.New("server").Funcs(template.FuncMap{"StringsJoin": strings.Join}).Parse(wgTpl)
+	t, err := template.New("server").Funcs(template.FuncMap{"StringsJoin": strings.Join, "getEnv": os.Getenv}).Parse(wgTpl)
 	if err != nil {
 		return nil, err
 	}
 
+	isUsePreSharedKey, err := strconv.ParseBool(os.Getenv("USE_PRE_SHARED_KEY"))
+	if err != nil {
+		return nil, err
+	}
 	configDataWg, err := dump(t, struct {
-		Clients []*model.Client
-		Server  *model.Server
+		Clients           []*model.Client
+		Server            *model.Server
+		IsUsePreSharedKey bool
 	}{
-		Clients: clients,
-		Server:  server,
+		Clients:           clients,
+		Server:            server,
+		IsUsePreSharedKey: isUsePreSharedKey,
 	})
 	if err != nil {
 		return nil, err
 	}
-
-	//log.Info(configDataWg)
 
 	err = util.WriteFile(filepath.Join(os.Getenv("WG_CONF_DIR"), os.Getenv("WG_INTERFACE_NAME")), configDataWg)
 	if err != nil {
