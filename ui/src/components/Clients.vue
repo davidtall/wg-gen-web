@@ -118,7 +118,8 @@
                             <v-list-item>
                                 <v-list-item-content>
                                     <v-list-item-title class="headline">{{ client.name }}</v-list-item-title>
-                                    <v-list-item-subtitle>{{ client.email }}</v-list-item-subtitle>
+                                    <v-list-item-subtitle>Id: {{ client.id }}</v-list-item-subtitle>
+                                    <v-list-item-subtitle>Email: {{ client.email }}</v-list-item-subtitle>
                                     <v-list-item-subtitle>Created: {{ client.created | formatDate }} by {{ client.createdBy }}</v-list-item-subtitle>
                                     <v-list-item-subtitle>Updated: {{ client.updated | formatDate }} by {{ client.updatedBy }}</v-list-item-subtitle>
                                 </v-list-item-content>
@@ -385,6 +386,10 @@
                                         required
                                 />
                               <v-text-field
+                                  v-model="client.privateKey"
+                                  label="privateKey"
+                              />
+                              <v-text-field
                                   v-model="client.publicKey"
                                   label="PublicKey"
                               />
@@ -492,6 +497,7 @@
 </template>
 <script>
   import { mapActions, mapGetters } from 'vuex'
+  import pinyin from "js-pinyin";
 
   export default {
     name: 'Clients',
@@ -640,9 +646,11 @@
 
       getConfigFileName(client){
         let name = client.name.split(' ').join('-');
+        // translate to chinese pinyin
+        name = pinyin.getFullChars(name)
         // replace special chars
         name = name.replace(/[^a-zA-Z0-9_-]+/g, '');
-        return name + '.conf';
+        return 'wg-' + name + '.conf';
       },
     }
   };

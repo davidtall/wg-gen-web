@@ -8,20 +8,24 @@ import (
 	"github.com/vx3r/wg-gen-web/template"
 	"github.com/vx3r/wg-gen-web/util"
 	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
+	"io/ioutil"
 	"os"
 	"path/filepath"
+	"sort"
+	"strings"
 	"time"
 )
 
 // ReadServer object, create default one
 func ReadServer() (*model.Server, error) {
-	if !util.FileExists(filepath.Join(os.Getenv("WG_CONF_DIR"), "server.json")) {
+	if !util.FileExists(filepath.Join(os.Getenv("WG_CONF_DIR"), storage.GetServerFileName())) {
 		server := &model.Server{}
 
 		key, err := wgtypes.GeneratePrivateKey()
 		if err != nil {
 			return nil, err
 		}
+		server.Name = "server"
 		server.PrivateKey = key.String()
 		server.PublicKey = key.PublicKey().String()
 
@@ -49,7 +53,7 @@ func ReadServer() (*model.Server, error) {
 		server.Created = time.Now().UTC()
 		server.Updated = server.Created
 
-		err = storage.Serialize("server.json", server)
+		err = storage.Serialize(storage.GetServerFileName(), server)
 		if err != nil {
 			return nil, err
 		}
@@ -61,7 +65,7 @@ func ReadServer() (*model.Server, error) {
 		}
 	}
 
-	c, err := storage.Deserialize("server.json")
+	c, err := storage.Deserialize(storage.GetServerFileName())
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +75,7 @@ func ReadServer() (*model.Server, error) {
 
 // UpdateServer keep private values from existing one
 func UpdateServer(server *model.Server) (*model.Server, error) {
-	current, err := storage.Deserialize("server.json")
+	current, err := storage.Deserialize(storage.GetServerFileName())
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +96,7 @@ func UpdateServer(server *model.Server) (*model.Server, error) {
 	//server.PresharedKey = current.(*model.Server).PresharedKey
 	server.Updated = time.Now().UTC()
 
-	err = storage.Serialize("server.json", server)
+	err = storage.Serialize(storage.GetServerFileName(), server)
 	if err != nil {
 		return nil, err
 	}
@@ -172,4 +176,34 @@ func GetAllReservedIps() ([]string, error) {
 // ReadWgConfigFile return content of wireguard config file
 func ReadWgConfigFile() ([]byte, error) {
 	return util.ReadFile(filepath.Join(os.Getenv("WG_CONF_DIR"), os.Getenv("WG_INTERFACE_NAME")))
+}
+
+func ReadServers() ([]*model.Server, error) {
+	servers := make([]*model.Server, 0)
+
+	files, err := ioutil.ReadDir(filepath.Join(os.Getenv("WG_CONF_DIR")))
+	if err != nil {
+		return nil, err
+	}
+
+	for _, f := range files {
+		// clients file name is an uuid
+		if strings.HasPrefix(f.Name(), "server") {
+			s, err := storage.Deserialize(f.Name())
+			if err != nil {
+				log.WithFields(log.Fields{
+					"err":  err,
+					"path": f.Name(),
+				}).Error("failed to deserialize client")
+			} else {
+				servers = append(servers, s.(*model.Server))
+			}
+		}
+	}
+	sort.Slice(servers, func(i, j int) bool {
+		return servers[i].Name < servers[j].Name
+		//return servers[i].Created.After(servers[j].Created)
+	})
+
+	return servers, nil
 }

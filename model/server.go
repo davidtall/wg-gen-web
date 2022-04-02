@@ -8,6 +8,7 @@ import (
 
 // Server structure
 type Server struct {
+	Name                string    `json:"name"`
 	Address             []string  `json:"address"`
 	ListenPort          int       `json:"listenPort"`
 	Mtu                 int       `json:"mtu"`
@@ -24,6 +25,7 @@ type Server struct {
 	UpdatedBy           string    `json:"updatedBy"`
 	Created             time.Time `json:"created"`
 	Updated             time.Time `json:"updated"`
+	IsCurrentServer     bool      `json:"isCurrentServer"`
 }
 
 // IsValid check if model is valid

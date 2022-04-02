@@ -198,12 +198,12 @@ func ReadClientConfig(id string) ([]byte, error) {
 		return nil, err
 	}
 
-	server, err := ReadServer()
+	servers, err := ReadServers()
 	if err != nil {
 		return nil, err
 	}
 
-	configDataWg, err := template.DumpClientWg(client, server)
+	configDataWg, err := template.DumpClientWg(client, servers)
 	if err != nil {
 		return nil, err
 	}

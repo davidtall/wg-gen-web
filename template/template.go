@@ -198,23 +198,32 @@ var (
 </html>
 `
 
-	clientTpl = `[Interface]
+	clientTpl = `# Client : {{ .Client.Name }}
+[Interface]
 Address = {{ StringsJoin .Client.Address ", " }}
 PrivateKey = {{ .Client.PrivateKey }}
-{{ if ne (len .Server.Dns) 0 -}}
-DNS = {{ StringsJoin .Server.Dns ", " }}
-{{- end }}
-{{ if ne .Server.Mtu 0 -}}
-MTU = {{.Server.Mtu}}
+
+{{- range $index,$server := .Servers}}
+	{{- if and (ne (len $server.Dns) 0) ($server.IsCurrentServer) }}
+DNS = {{ StringsJoin $server.Dns ", " }}
+	{{- end }}
+	{{- if and (ne $server.Mtu 0) ($server.IsCurrentServer)}}
+MTU = {{$server.Mtu}}
+	{{- end}}
 {{- end}}
+
+{{range .Servers }}
 [Peer]
-PublicKey = {{ .Server.PublicKey }}
-PresharedKey = {{ .Client.PresharedKey }}
-AllowedIPs = {{ StringsJoin .Client.AllowedIPs ", " }}
-Endpoint = {{ .Server.Endpoint }}
-{{ if and (ne .Server.PersistentKeepalive 0) (not .Client.IgnorePersistentKeepalive) -}}
-PersistentKeepalive = {{.Server.PersistentKeepalive}}
-{{- end}}
+PublicKey = {{ .PublicKey }}
+{{- if $.IsUsePreSharedKey }}
+PresharedKey = {{ $.Client.PresharedKey }}
+{{- end }}
+AllowedIPs = {{ StringsJoin .AllowedIPs ", " }}
+Endpoint = {{ .Endpoint }}
+{{ if and (ne .PersistentKeepalive 0) (not $.Client.IgnorePersistentKeepalive) -}}
+PersistentKeepalive = {{.PersistentKeepalive}}
+{{- end }}
+{{ end }}
 `
 
 	wgTpl = `# Updated: {{ .Server.Updated }} / Created: {{ .Server.Created }}
@@ -232,7 +241,7 @@ PostUp = {{ .Server.PostUp }}
 PreDown = {{ .Server.PreDown }}
 PostDown = {{ .Server.PostDown }}
 {{- range .Clients }}
-{{ if .Enable -}}
+{{ if and (.Enable) (ne .PublicKey $.Server.PublicKey) -}}
 # {{.Name}} / {{.Email}} / Updated: {{.Updated}} / Created: {{.Created}}
 [Peer]
 PublicKey = {{ .PublicKey }}
@@ -251,18 +260,20 @@ PersistentKeepalive = {{ .PersistentKeepalive }}
 )
 
 // DumpClientWg dump client wg config with go template
-func DumpClientWg(client *model.Client, server *model.Server) ([]byte, error) {
-	t, err := template.New("client").Funcs(template.FuncMap{"StringsJoin": strings.Join}).Parse(clientTpl)
+func DumpClientWg(client *model.Client, server []*model.Server) ([]byte, error) {
+	t, err := template.New("client").Funcs(template.FuncMap{"StringsJoin": strings.Join, "getEnv": os.Getenv}).Parse(clientTpl)
 	if err != nil {
 		return nil, err
 	}
-
+	isUsePreSharedKey, err := strconv.ParseBool(os.Getenv("USE_PRE_SHARED_KEY"))
 	return dump(t, struct {
-		Client *model.Client
-		Server *model.Server
+		Client            *model.Client
+		Servers           []*model.Server
+		IsUsePreSharedKey bool
 	}{
-		Client: client,
-		Server: server,
+		Client:            client,
+		Servers:           server,
+		IsUsePreSharedKey: isUsePreSharedKey,
 	})
 }
 

@@ -12,6 +12,7 @@ import (
 	"github.com/vx3r/wg-gen-web/api"
 	"github.com/vx3r/wg-gen-web/auth"
 	"github.com/vx3r/wg-gen-web/core"
+	"github.com/vx3r/wg-gen-web/storage"
 	"github.com/vx3r/wg-gen-web/util"
 	"github.com/vx3r/wg-gen-web/version"
 	"golang.org/x/oauth2"
@@ -55,7 +56,7 @@ func main() {
 	}
 
 	// check if server.json exists otherwise create it with default values
-	if !util.FileExists(filepath.Join(os.Getenv("WG_CONF_DIR"), "server.json")) {
+	if !util.FileExists(filepath.Join(os.Getenv("WG_CONF_DIR"), storage.GetServerFileName())) {
 		_, err = core.ReadServer()
 		if err != nil {
 			log.WithFields(log.Fields{
