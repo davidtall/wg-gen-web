@@ -248,7 +248,7 @@ PublicKey = {{ .PublicKey }}
 {{- if $.IsUsePreSharedKey }}
 PresharedKey = {{ .PresharedKey }}
 {{- end }}
-AllowedIPs = {{ StringsJoin .Address ", " }}
+AllowedIPs = {{ StringsJoin .AllowedIPs ", " }}
 {{- if ne (len .Endpoint) 0 }}
 Endpoint = {{ .Endpoint }}
 {{- end }}
