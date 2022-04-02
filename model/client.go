@@ -46,15 +46,18 @@ func (a Client) IsValid() []error {
 		}
 	}
 	// check if the allowedIPs empty
-	if len(a.AllowedIPs) == 0 {
+	/*if len(a.AllowedIPs) == 0 {
 		errs = append(errs, fmt.Errorf("allowedIPs field is required"))
-	}
+	}*/
 	// check if the allowedIPs are valid
-	for _, allowedIP := range a.AllowedIPs {
-		if !util.IsValidCidr(allowedIP) {
-			errs = append(errs, fmt.Errorf("allowedIP %s is invalid", allowedIP))
+	if len(a.AllowedIPs) > 0 {
+		for _, allowedIP := range a.AllowedIPs {
+			if !util.IsValidCidr(allowedIP) {
+				errs = append(errs, fmt.Errorf("allowedIP %s is invalid", allowedIP))
+			}
 		}
 	}
+
 	// check if the address empty
 	if len(a.Address) == 0 {
 		errs = append(errs, fmt.Errorf("address field is required"))

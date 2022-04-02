@@ -554,7 +554,7 @@
           name: "",
           email: "",
           enable: true,
-          allowedIPs: this.server.allowedips,
+          allowedIPs: [],
           address: this.server.address,
           tags: [],
         }
@@ -562,7 +562,7 @@
       },
 
       create(client) {
-        if (client.allowedIPs.length < 1) {
+       /* if (client.allowedIPs.length < 1) {
           this.errorClient('Please provide at least one valid CIDR address for client allowed IPs')
           return;
         }
@@ -571,7 +571,7 @@
             this.errorClient('Invalid CIDR detected, please correct before submitting')
             return
           }
-        }
+        }*/
         this.dialogCreate = false;
         client.persistentKeepalive = parseInt(client.persistentKeepalive, 10);
         this.creatClient(client)

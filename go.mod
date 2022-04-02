@@ -3,6 +3,7 @@ module github.com/vx3r/wg-gen-web
 go 1.16
 
 require (
+	github.com/chenhg5/collection v0.0.0-20200925143926-f403b87088f9 // indirect
 	github.com/coreos/go-oidc v2.2.1+incompatible
 	github.com/danielkov/gin-helmet v0.0.0-20171108135313-1387e224435e
 	github.com/gin-contrib/cors v1.3.1

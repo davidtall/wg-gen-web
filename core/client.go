@@ -2,6 +2,7 @@ package core
 
 import (
 	"errors"
+	"github.com/chenhg5/collection"
 	uuid "github.com/satori/go.uuid"
 	log "github.com/sirupsen/logrus"
 	"github.com/skip2/go-qrcode"
@@ -73,8 +74,13 @@ func CreateClient(client *model.Client) (*model.Client, error) {
 			ip = ip + "/32"
 		}
 		ips = append(ips, ip)
+		if !collection.Collect(client.AllowedIPs).Contains(ip) {
+			client.AllowedIPs = append(client.AllowedIPs, ip)
+		}
+
 	}
 	client.Address = ips
+
 	client.Created = time.Now().UTC()
 	client.Updated = client.Created
 
